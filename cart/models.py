@@ -8,6 +8,19 @@ from django.urls import reverse
 
 User = get_user_model()
 
+class ColourVariation(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class SizeVariation(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
 class Address(models.Model):
     ADDRESS_CHOICES = (
         ('b', 'Billing'),
@@ -36,6 +49,8 @@ class Product(models.Model):
     updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     image = models.ImageField(upload_to='product_images')
+    available_colours = models.ManyToManyField(ColourVariation)
+    available_sizes = models.ManyToManyField(SizeVariation)
 
     def __str__(self):
         return self.title
@@ -47,6 +62,8 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     order = models.ForeignKey('Order', related_name='items', on_delete=models.CASCADE)
+    colour = models.ForeignKey(ColourVariation, on_delete=models.CASCADE)
+    size = models.ForeignKey(SizeVariation, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.quantity} x {self.product.title}"
