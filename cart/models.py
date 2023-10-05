@@ -41,7 +41,7 @@ class Product(models.Model):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('product-detail', kwargs={'slug':self.slug})
+        return reverse('cart:product-detail', kwargs={'slug':self.slug})
 
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -52,7 +52,7 @@ class OrderItem(models.Model):
         return f"{self.quantity} x {self.product.title}"
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField(blank=True, null=True)
     ordered = models.BooleanField(default=False)
