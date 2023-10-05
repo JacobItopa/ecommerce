@@ -51,12 +51,16 @@ class Product(models.Model):
     image = models.ImageField(upload_to='product_images')
     available_colours = models.ManyToManyField(ColourVariation)
     available_sizes = models.ManyToManyField(SizeVariation)
+    price = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
     
     def get_absolute_url(self):
         return reverse('cart:product-detail', kwargs={'slug':self.slug})
+    
+    def get_price(self):
+        return "{:.2f}".format(self.price/100)
 
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -67,6 +71,13 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.title}"
+    
+    def get_raw_total_item_price(self):
+        return self.quantity * self.product.price
+    
+    def get_total_item_prce(self):
+        price = self.get_raw_total_item_price()
+        return "{:.2f}".format(price/100)
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
