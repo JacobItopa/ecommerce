@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from .models import Product
+from django.shortcuts import redirect
+from .models import Product, OrderItem
 from django.views import generic
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -16,7 +16,7 @@ class ProductList(generic.ListView):
 
 class ProductDetail(generic.FormView):
     template_name = 'cart/product_detail.html'
-    success_url = reverse_lazy('home') #TODO: cart
+    success_url = reverse_lazy('cart:summary') #TODO: cart
     form_class = AddToCartForm
  
     def get_object(self):
@@ -59,4 +59,26 @@ class CartView(generic.TemplateView):
         context['order'] = get_or_set_order_session(self.request)
         return context
 
+class IncreaseQuantityView(generic.View):
+    def get(self, request, *args, **kwargs):
+        order_item = get_object_or_404(OrderItem, id=kwargs['pk'])
+        order_item.quantity += 1
+        order_item.save()
+        return redirect('cart:summary')
+
+class DecreaseQuantityView(generic.View):
+    def get(self, request, *args, **kwargs):
+        order_item = get_object_or_404(OrderItem, id=kwargs['pk'])
+
+        if order_item.quantity <= 1:
+            order_item.delete()
+        else:
+            order_item.quantity -= 1
+            order_item.save()
+        return redirect('cart:summary')
     
+class RemoveFromCartView(generic.View):
+    def get(self, request, *args, **kwargs):
+        order_item = get_object_or_404(OrderItem, id=kwargs['pk*'])
+        order_item.delete()
+        return redirect('cart:summary')
