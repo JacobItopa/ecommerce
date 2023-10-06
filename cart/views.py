@@ -79,6 +79,6 @@ class DecreaseQuantityView(generic.View):
     
 class RemoveFromCartView(generic.View):
     def get(self, request, *args, **kwargs):
-        order_item = get_object_or_404(OrderItem, id=kwargs['pk*'])
+        order_item = get_object_or_404(OrderItem, id=kwargs['pk'])
         order_item.delete()
         return redirect('cart:summary')
