@@ -1,10 +1,11 @@
 from django.shortcuts import redirect
-from .models import Product, OrderItem
+from .models import Product, OrderItem, Address
 from django.views import generic
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from .utils import get_or_set_order_session
-from .forms import AddToCartForm
+from .forms import AddToCartForm, AddressForm
+from django.contrib import messages
 
 # Create your views here.
 
@@ -82,3 +83,56 @@ class RemoveFromCartView(generic.View):
         order_item = get_object_or_404(OrderItem, id=kwargs['pk'])
         order_item.delete()
         return redirect('cart:summary')
+
+class CheckOutView(generic.FormView):
+    template_name = 'cart/checkout.html'
+    form_class = AddressForm
+    success_url = reverse_lazy('home')
+
+    def get_context_data(self, **kwargs):
+        context = super(CheckOutView, self).get_context_data(**kwargs)
+        context['order'] = get_or_set_order_session(self.request)
+        return context
+    
+    def get_form_kwargs(self):
+        kwargs = super(CheckOutView, self).get_form_kwargs()
+        kwargs['user_id'] = self.request.user.id
+        return kwargs
+
+    def form_valid(self, form):
+        order = get_or_set_order_session(self.request)
+        selected_shipping_address = form.cleaned_data.get('selected_shipping_address')
+        selected_billing_address = form.cleaned_data.get('selected_billing_address')
+
+        if selected_shipping_address:
+            order.shipping_address = selected_shipping_address
+        else:
+            address = Address.objects.create(
+                user = self.request.user,
+                address_type = 'S',
+                address_line_1 = form.cleaned_data['shipping_address_line_1'],
+                address_line_2 = form.cleaned_data['shipping_address_line_2'],
+                zip_code = form.cleaned_data['shipping_zip_code'],
+                city = form.cleaned_data['shipping_city']
+            )
+            order.shipping_address = address
+        order.save()
+
+        if selected_billing_address:
+            order.billing_address = selected_billing_address
+        else:
+            address = Address.objects.create(
+                user = self.request.user,
+                address_type = 'B',
+                address_line_1 = form.cleaned_data['billing_address_line_1'],
+                address_line_2 = form.cleaned_data['billing_address_line_2'],
+                zip_code = form.cleaned_data['billing_zip_code'],
+                city = form.cleaned_data['billing_city']
+            )
+            order.billing_address = address
+        order.save()
+
+        messages.info(
+            self.request, 'You have successfully added your address',
+        )
+        return super(CheckOutView, self).form_valid(form)
