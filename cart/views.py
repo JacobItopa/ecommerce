@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from .models import Product, OrderItem, Address
+from .models import Product, OrderItem, Address, Order
 from django.views import generic
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -10,8 +10,17 @@ from django.conf import settings
 import json
 from django.http import JsonResponse
 import datetime
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
+
+class ProfileView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ProfileView, self).get_context_data(**kwargs)
+        context.update({'orders': Order.objects.filter(user=self.request.user, ordered=True)})
+        return context
 
 class ProductList(generic.ListView):
     queryset = Product.objects.all()
