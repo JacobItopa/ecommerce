@@ -49,7 +49,11 @@ INSTALLED_APPS = [
     # 3rd party apps
     'crispy_forms',
     'crispy_bootstrap5',
+    'allauth',
+    'allauth.accounts',
+    'allauth.socialaccount',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -59,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'django_project.urls'
@@ -148,3 +153,11 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+PAYPAL_CLIENT_ID = env("PAYPAL_SANDBOX_CLIENT_ID")
+PAYPAL_SECRET_KEY = env("PAYPAL_SANDBOX_SECRET_KEY")
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
