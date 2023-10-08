@@ -2,10 +2,14 @@ from django.shortcuts import redirect
 from .models import Product, OrderItem, Address
 from django.views import generic
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .utils import get_or_set_order_session
 from .forms import AddToCartForm, AddressForm
 from django.contrib import messages
+from django.conf import settings
+import json
+from django.http import JsonResponse
+import datetime
 
 # Create your views here.
 
@@ -87,7 +91,7 @@ class RemoveFromCartView(generic.View):
 class CheckOutView(generic.FormView):
     template_name = 'cart/checkout.html'
     form_class = AddressForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('cart:payment')
 
     def get_context_data(self, **kwargs):
         context = super(CheckOutView, self).get_context_data(**kwargs)
@@ -136,3 +140,33 @@ class CheckOutView(generic.FormView):
             self.request, 'You have successfully added your address',
         )
         return super(CheckOutView, self).form_valid(form)
+
+class PaymentView(generic.TemplateView):
+    template_name = "cart/payment.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PaymentView, self).get_context_data(**kwargs)
+        context["PAYPAL_CLIENT_ID"] = settings.PAYPAL_CLIENT_ID
+        context["order"] = get_or_set_order_session(self.request)
+        context["CALLBACK_URL"] = reverse("cart:thank-you")
+        return context
+    
+class ThankYouView(generic.TemplateView):
+    template_name = "cart/thanks.html"
+
+class ConfirmOrderView(generic.View):
+    def post(self, request, *args, **kwargs):
+        order = get_or_set_order_session(request)
+        body = json.load(request.body)
+        print(body)
+        payment = payment.objects.create(
+            order=order,
+            successful=True,
+            raw_response=json.dumps(body),
+            amount=float(body['purchase_units'][0]['amount']['value']),
+            payment_method='paypal',
+        )
+        order.ordered=True
+        order.ordered_date = datetime.date.today()
+        order.save()
+        return JsonResponse({'data':'success'})

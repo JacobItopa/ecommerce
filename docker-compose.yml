@@ -12,6 +12,8 @@ services:
     environment:
       - "DJANGO_SECRET_KEY=django-insecure-r83!dk&*!&519$$rc@bmj(l7g)c+enrcr2z6tiu9k*)x0(u8qra"
       - "DJANGO_DEBUG=True"
+      - "PAYPAL_SANDBOX_CLIENT_ID=AW0cXhhXxIHwyb1MZQKCpmes8USTfkcSgV3OOI5BuIGvCklsicB078dQdXUvosQ4brBicganY_fs1G7D"
+      - "PAYPAL_SANDBOX_SECRET_KEY=EFmF3Ywsf9cunr90lAjFiQD-cL6QXxH_iUVuRDtotIqoEMggBUSxuopzn_9XMMjo0_NePzD2olGcaKvR"
 
   db:
     image: postgres:13
